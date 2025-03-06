@@ -1,0 +1,332 @@
+/* Styles de base */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Container du formulaire */
+.form-container {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Groupes de formulaire */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Labels */
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Champs de formulaire */
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: #0078d4;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
+}
+
+/* Zone de texte */
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Bouton de soumission */
+.submit-btn {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background-color: #106ebe;
+}
+
+/* En-tête */
+.header {
+    background: #0078d4;
+    color: white;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 20px;
+}
+
+/* Messages de chargement */
+#sideload-msg {
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    text-align: center;
+}
+
+#app-body {
+    display: none;
+}
+
+/* Styles réactifs */
+@media (max-width: 480px) {
+    .form-container {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 10px;
+    }
+
+    .submit-btn {
+        padding: 8px 16px;
+    }
+}
+
+/* Styles pour les champs en lecture seule */
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* Animation du bouton */
+.submit-btn i {
+    margin-right: 8px;
+}
+
+/* Style pour le message de chargement */
+.ms-font-xl {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+/* Navigation */
+.nav-menu {
+    display: flex;
+    background-color: #f8f9fa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-button {
+    flex: 1;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    color: #0078d4;
+}
+
+.nav-button.nav-active {
+    color: #0078d4;
+    border-bottom: 2px solid #0078d4;
+}
+
+/* Pages */
+.page {
+    display: none;
+    padding: 0 20px;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Icon dans les boutons */
+.nav-button i {
+    font-size: 16px;
+}
+
+/* Style pour le conteneur du mot de passe */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container .form-control {
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password:hover {
+    color: #0078d4;
+}
+
+/* Marge entre les boutons */
+.mb-3 {
+    margin-bottom: 12px;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-in-out;
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animation de rotation pour l'icône de synchronisation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+}
+
+.email-input-container {
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+#sender-email {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#email-select {
+    width: auto;
+    min-width: 120px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.attachment-status {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.status-loading .ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+    color: #666;
+}
+
+.status-loaded .ms-Icon--Accept {
+    color: #107C10;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.attachment-icon {
+    margin-right: 10px;
+    color: #666;
+}
+
+.attachment-info {
+    flex-grow: 1;
+}
+
+.attachment-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.attachment-size {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.attachment-status.status-loading .ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+}
+
+.attachment-status.status-loaded .ms-Icon--Accept {
+    color: #107C10;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
