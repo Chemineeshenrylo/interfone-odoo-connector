@@ -2,10 +2,10 @@
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0" xsi:type="MailApp">
   <Id>fc5cdf2b-057d-49a1-87d9-9a8ea8f9a6cb</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>Contoso</ProviderName>
-  <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="odoocrm"/>
-  <Description DefaultValue="A template to get started."/>
+  <ProviderName>Cheminées Henry</ProviderName>
+  <DefaultLocale>fr-FR</DefaultLocale>
+  <DisplayName DefaultValue="Odoo CRM"/>
+  <Description DefaultValue="Intégration Outlook pour Odoo CRM"/>
   <IconUrl DefaultValue="https://www.contoso.com/assets/icon-64.png"/>
   <HighResolutionIconUrl DefaultValue="https://www.contoso.com/assets/icon-128.png"/>
   <SupportUrl DefaultValue="https://www.contoso.com/help"/>
@@ -48,6 +48,7 @@
             <OfficeTab id="TabDefault">
               <Group id="msgReadGroup">
                 <Label resid="GroupLabel"/>
+                <!-- Bouton Créer un lead -->
                 <Control xsi:type="Button" id="msgReadOpenPaneButton">
                   <Label resid="TaskpaneButton.Label"/>
                   <Supertip>
@@ -63,19 +64,20 @@
                     <SourceLocation resid="Taskpane.Url"/>
                   </Action>
                 </Control>
-                <Control xsi:type="Button" id="ActionButton">
-                  <Label resid="ActionButton.Label"/>
+                <!-- Bouton Contacts -->
+                <Control xsi:type="Button" id="ContactsButton">
+                  <Label resid="ContactsButton.Label"/>
                   <Supertip>
-                    <Title resid="ActionButton.Label"/>
-                    <Description resid="ActionButton.Tooltip"/>
+                    <Title resid="ContactsButton.Label"/>
+                    <Description resid="ContactsButton.Tooltip"/>
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16"/>
                     <bt:Image size="32" resid="Icon.32x32"/>
                     <bt:Image size="80" resid="Icon.80x80"/>
                   </Icon>
-                  <Action xsi:type="ExecuteFunction">
-                    <FunctionName>action</FunctionName>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="Commands.Url"/>
                   </Action>
                 </Control>
               </Group>
@@ -95,13 +97,13 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://www.contoso.com/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GroupLabel" DefaultValue="Contoso Add-in"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Show Task Pane"/>
-        <bt:String id="ActionButton.Label" DefaultValue="Perform an action"/>
+        <bt:String id="GroupLabel" DefaultValue="Odoo CRM"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Créer un lead"/>
+        <bt:String id="ContactsButton.Label" DefaultValue="Contacts"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Opens a pane displaying all available properties."/>
-        <bt:String id="ActionButton.Tooltip" DefaultValue="Perform an action when clicked."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Créer un nouveau lead dans Odoo"/>
+        <bt:String id="ContactsButton.Tooltip" DefaultValue="Rechercher et gérer les contacts"/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

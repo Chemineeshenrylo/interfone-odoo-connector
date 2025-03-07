@@ -1,0 +1,767 @@
+/* Styles de base */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Container du formulaire */
+.form-container {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Groupes de formulaire */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Labels */
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Champs de formulaire */
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: #0078d4;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
+}
+
+/* Zone de texte */
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Bouton de soumission */
+.submit-btn {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background-color: #106ebe;
+}
+
+/* En-tête */
+.header {
+    background: #0078d4;
+    color: white;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 20px;
+}
+
+/* Messages de chargement */
+#sideload-msg {
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+    text-align: center;
+}
+
+#app-body {
+    display: none;
+}
+
+/* Styles réactifs */
+@media (max-width: 480px) {
+    .form-container {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 10px;
+    }
+
+    .submit-btn {
+        padding: 8px 16px;
+    }
+}
+
+/* Styles pour les champs en lecture seule */
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* Animation du bouton */
+.submit-btn i {
+    margin-right: 8px;
+}
+
+/* Style pour le message de chargement */
+.ms-font-xl {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+/* Navigation */
+.nav-menu {
+    display: flex;
+    background-color: #f8f9fa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-button {
+    flex: 1;
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    color: #0078d4;
+}
+
+.nav-button.nav-active {
+    color: #0078d4;
+    border-bottom: 2px solid #0078d4;
+}
+
+/* Pages */
+.page {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease-in-out;
+    padding: 20px;
+    background: white;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Icon dans les boutons */
+.nav-button i {
+    font-size: 16px;
+}
+
+/* Style pour le conteneur du mot de passe */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container .form-control {
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password:hover {
+    color: #0078d4;
+}
+
+/* Marge entre les boutons */
+.mb-3 {
+    margin-bottom: 12px;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-in-out;
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animation de rotation pour l'icône de synchronisation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+}
+
+.email-input-container {
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+#sender-email {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#email-select {
+    width: auto;
+    min-width: 120px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.attachment-status {
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.status-loading .ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+    color: #666;
+}
+
+.status-loaded .ms-Icon--Accept {
+    color: #107C10;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.attachment-icon {
+    margin-right: 10px;
+    color: #666;
+}
+
+.attachment-info {
+    flex-grow: 1;
+}
+
+.attachment-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.attachment-size {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.attachment-status.status-loading .ms-Icon--Sync {
+    animation: spin 1s linear infinite;
+}
+
+.attachment-status.status-loaded .ms-Icon--Accept {
+    color: #107C10;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Dans votre CSS, ajoutez ou modifiez ces styles */
+
+/* Modifier les styles des pages */
+.pages-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden; /* Empêche le scroll horizontal */
+    overflow-y: auto;   /* Permet le scroll vertical */
+}
+
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%;  /* Au lieu de height: 100% */
+    padding: 20px;
+    background: white;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+}
+
+#app-body {
+    position: relative; /* Changer en relative pour le scroll naturel */
+    transform: translateX(0);
+}
+
+#settings-page {
+    position: fixed;   /* Fixé par rapport à la viewport */
+    transform: translateX(100%);
+    height: 100vh;     /* Hauteur complète */
+    overflow-y: auto;  /* Scroll indépendant */
+}
+
+/* Quand la page des réglages est active */
+#settings-page.active {
+    transform: translateX(0);
+}
+
+/* Animation de la page principale */
+#app-body.slide-left {
+    transform: translateX(-100%);
+}
+
+/* Ajouter au CSS */
+.nav-settings-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.nav-settings-button:hover {
+    background: #e9ecef;
+}
+
+.back-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    display: none; /* Caché par défaut */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.back-button.visible {
+    display: flex;
+}
+
+.back-button:hover {
+    background: #e9ecef;
+}
+
+/* Modifier le style des pages */
+#settings-page {
+    background: rgba(255, 255, 255, 0.98); /* Fond légèrement transparent */
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* Ajouter au CSS pour les boutons de navigation */
+/* Modifier le style des boutons de navigation */
+.nav-buttons {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;  /* Espace entre les boutons */
+    z-index: 1000;
+    flex-direction: row-reverse; /* Inverse l'ordre des boutons */
+}
+
+.nav-icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-icon-button:hover {
+    background: #e9ecef;
+}
+
+/* Styles pour la page de recherche */
+#search-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 900;
+    overflow-y: auto; /* Permet le scroll vertical */
+}
+
+#search-page.active {
+    transform: translateX(0);
+}
+
+.search-container {
+    padding: 60px 20px 20px 20px;
+    max-width: 1200px; /* Limite la largeur maximale */
+    margin: 0 auto; /* Centre le contenu */
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #0078d4;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,120,212,0.1);
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.search-results {
+    margin-top: 20px;
+}
+
+.search-result-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background-color: #f8f9fa;
+}
+
+.result-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.result-details {
+    font-size: 14px;
+    color: #666;
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+.search-criteria {
+    margin-bottom: 20px;
+}
+
+.criteria-group {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+}
+
+.form-group {
+    margin-top: 10px;
+    margin-left: 24px; /* Pour aligner avec la case à cocher */
+}
+
+.form-group.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #106ebe;
+}
+
+.submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.submit-btn i {
+    font-size: 16px;
+}
+
+.search-results {
+    margin-top: 20px;
+   
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-style: italic;
+}
+
+.partner-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    
+}
+
+.partner-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.partner-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.partner-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+}
+
+.partner-select {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.partner-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    flex-grow: 1;
+}
+
+.card-content {
+    padding: 16px;
+}
+
+.partner-street,
+.partner-city {
+    margin: 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.partner-street {
+    margin-bottom: 8px;
+}
+
+.card-footer {
+    padding: 16px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-button,
+.upload-button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.view-button {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #90caf9;
+}
+
+.view-button:hover {
+    background-color: #90caf9;
+    color: white;
+}
+
+.upload-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    display: none;
+}
+
+.upload-button:hover {
+    background-color: #45a049;
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+    font-style: italic;
+    grid-column: 1 / -1;
+}
+
+.partner-tag {
+    display: inline-block;
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 20px;
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.partner-tag:hover {
+    background-color: #90caf9;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.loading {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
