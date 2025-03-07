@@ -6,11 +6,11 @@
   <DefaultLocale>fr-FR</DefaultLocale>
   <DisplayName DefaultValue="Odoo CRM"/>
   <Description DefaultValue="Intégration Outlook pour Odoo CRM"/>
-  <IconUrl DefaultValue="https://www.contoso.com/assets/icon-64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://www.contoso.com/assets/icon-128.png"/>
-  <SupportUrl DefaultValue="https://www.contoso.com/help"/>
+  <IconUrl DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/help"/>
   <AppDomains>
-    <AppDomain>https://www.contoso.com</AppDomain>
+    <AppDomain>https://chemineeshenrylo.github.io</AppDomain>
   </AppDomains>
   
   <Hosts>
@@ -24,7 +24,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://www.contoso.com/taskpane.html"/>
+        <SourceLocation DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -88,13 +88,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://www.contoso.com/assets/icon-16.png"/>
-        <bt:Image id="Icon.32x32" DefaultValue="https://www.contoso.com/assets/icon-32.png"/>
-        <bt:Image id="Icon.80x80" DefaultValue="https://www.contoso.com/assets/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Commands.Url" DefaultValue="https://www.contoso.com/commands.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://www.contoso.com/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://chemineeshenrylo.github.io/chemcrm/mon-outlook-addin/odoocrm/dist/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Odoo CRM"/>
