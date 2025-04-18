@@ -98,7 +98,7 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Odoo CRM"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Créer un lead"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Créer un lead/assitance"/>
         <bt:String id="ContactsButton.Label" DefaultValue="Contacts"/>
       </bt:ShortStrings>
       <bt:LongStrings>

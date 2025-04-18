@@ -796,3 +796,34 @@ textarea.form-control {
     object-fit: contain;
     margin-right: 10px;
 }
+
+.phone-input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;  /* Changé de row (défaut) à column */
+    gap: 8px;
+}
+
+#phone-number, #search-phone-number {
+    width: 100%;           /* Prend toute la largeur disponible */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#phone-select, #search-phone-select {
+    width: 100%;           /* Prend toute la largeur disponible */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.assistance-btn {
+    margin-top: 10px;
+    background-color: #4CAF50;  /* Une couleur différente pour distinguer */
+}
+
+.assistance-btn:hover {
+    background-color: #45a049;
+}
