@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, shell, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, shell, Notification, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store').default || require('electron-store');
@@ -197,6 +198,9 @@ app.whenReady().then(() => {
   createMainWindow();
   createTray();
 
+  // Configuration auto-updater
+  setupAutoUpdater();
+
   // Auto-connection silencieuse si les paramètres existent
   setTimeout(() => {
     const settings = store.get('settings');
@@ -216,6 +220,102 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createMainWindow();
   }
+});
+
+// ===== AUTO-UPDATER SETUP =====
+function setupAutoUpdater() {
+  // Configuration de l'auto-updater
+  autoUpdater.checkForUpdatesAndNotify();
+
+  // Logs pour debug
+  autoUpdater.logger = console;
+
+  // Événements auto-updater
+  autoUpdater.on('checking-for-update', () => {
+    console.log('🔍 Vérification des mises à jour...');
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'checking' });
+    }
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('📥 Mise à jour disponible:', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'available',
+        version: info.version
+      });
+    }
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('✅ Application à jour:', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'not-available',
+        version: info.version
+      });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('❌ Erreur mise à jour:', err);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'error',
+        error: err.message
+      });
+    }
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = `📥 Téléchargement ${progressObj.percent.toFixed(1)}%`;
+    console.log(log_message);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'downloading',
+        progress: progressObj.percent
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('✅ Mise à jour téléchargée:', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', {
+        status: 'downloaded',
+        version: info.version
+      });
+    }
+
+    // Proposer d'installer immédiatement
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Mise à jour prête',
+      message: `La mise à jour vers la version ${info.version} est prête à être installée.`,
+      detail: 'L\'application va redémarrer pour appliquer la mise à jour.',
+      buttons: ['Installer maintenant', 'Plus tard'],
+      defaultId: 0
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+}
+
+// IPC Handlers pour l'auto-updater
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    return await autoUpdater.checkForUpdates();
+  } catch (error) {
+    console.error('Erreur lors de la vérification des mises à jour:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('install-update', async () => {
+  autoUpdater.quitAndInstall();
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {

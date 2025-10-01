@@ -1,6 +1,6 @@
 {
   "name": "interfone-odoo-connector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -14,6 +14,13 @@
     "directories": {
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Chemineeshenrylo",
+        "repo": "interfone-odoo-connector"
+      }
+    ],
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "assets/icon.icns"
@@ -34,6 +41,7 @@
   "dependencies": {
     "drachtio-srf": "^5.0.13",
     "electron-store": "^11.0.0",
+    "electron-updater": "^6.6.2",
     "sip": "^0.0.6",
     "sip.js": "^0.21.2"
   },
