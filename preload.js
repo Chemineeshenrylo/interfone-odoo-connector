@@ -11,6 +11,10 @@ window.electronAPI = {
   sipStatus: () => ipcRenderer.invoke('sip-status'),
   sipTestCall: () => ipcRenderer.invoke('sip-test-call'),
 
+  // Auto-updater API
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => ipcRenderer.on(channel, callback),
+
   // Ancienne API pour compatibilité
   sendSipConnected: () => ipcRenderer.send('sip-connected'),
   sendSipDisconnected: () => ipcRenderer.send('sip-disconnected'),
