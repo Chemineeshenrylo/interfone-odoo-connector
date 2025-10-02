@@ -232,10 +232,16 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.allowDowngrade = false;
 
-  // IMPORTANT: Désactiver la vérification de signature pour macOS
+  // IMPORTANT: Désactiver complètement la vérification de signature pour macOS
   if (process.platform === 'darwin') {
+    autoUpdater.forceDevUpdateConfig = true;
     process.env.ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES = 'true';
   }
+
+  // Forcer l'installation sans vérification de signature
+  autoUpdater.allowPrerelease = false;
+  autoUpdater.fullChangelog = true;
+  autoUpdater.autoInstallOnAppQuit = true;
 
   // Logs pour debug
   autoUpdater.logger = console;
