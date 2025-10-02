@@ -319,7 +319,11 @@ function setupAutoUpdater() {
       defaultId: 0
     }).then((result) => {
       if (result.response === 0) {
-        autoUpdater.quitAndInstall();
+        // Forcer la fermeture et l'installation
+        setImmediate(() => {
+          app.isQuitting = true;
+          autoUpdater.quitAndInstall(false, true);
+        });
       }
     });
   });
@@ -336,7 +340,8 @@ ipcMain.handle('check-for-updates', async () => {
 });
 
 ipcMain.handle('install-update', async () => {
-  autoUpdater.quitAndInstall();
+  app.isQuitting = true;
+  autoUpdater.quitAndInstall(false, true);
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {
