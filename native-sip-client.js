@@ -126,15 +126,73 @@ class NativeSIPClient extends EventEmitter {
     const lines = message.split('\r\n');
     const firstLine = lines[0];
 
+    // Logger tous les messages pour debugging
+    console.log('🔍 Message SIP reçu:', firstLine);
+
     if (firstLine.includes('SIP/2.0 200 OK')) {
       if (message.includes('REGISTER')) {
         this.registered = true;
         this.emit('registered');
+      } else {
+        // 200 OK pour autre chose que REGISTER = potentiellement un appel décroché
+        console.log('📞 200 OK reçu (possiblement appel décroché)');
+
+        // Vérifier si c'est lié à notre appel en cours
+        if (this.currentCall) {
+          const callIdMatch = message.match(/Call-ID: (.+)/);
+          const callId = callIdMatch ? callIdMatch[1].trim() : null;
+
+          if (callId === this.currentCall.callId) {
+            console.log('✅ 200 OK correspond à notre appel - Appel décroché');
+            if (this.callTimeout) {
+              clearTimeout(this.callTimeout);
+              this.callTimeout = null;
+            }
+            this.emit('call-answered');
+          }
+        }
       }
+    } else if (firstLine.includes('ACK sip:')) {
+      // ACK reçu = quelqu'un a décroché l'appel
+      console.log('📞 ACK reçu - L\'appel a été décroché');
+      // Annuler le timeout
+      if (this.callTimeout) {
+        clearTimeout(this.callTimeout);
+        this.callTimeout = null;
+      }
+      this.emit('call-answered');
     } else if (firstLine.includes('SIP/2.0 401 Unauthorized') || firstLine.includes('SIP/2.0 407 Proxy Authentication Required')) {
       this.handleAuthentication(message, rinfo);
     } else if (firstLine.includes('INVITE sip:')) {
       this.handleIncomingCall(message, rinfo);
+    } else if (firstLine.includes('BYE sip:')) {
+      // L'appelant a raccroché
+      console.log('📴 BYE reçu - L\'appelant a raccroché');
+      // Annuler le timeout
+      if (this.callTimeout) {
+        clearTimeout(this.callTimeout);
+        this.callTimeout = null;
+      }
+      this.emit('call-ended');
+      this.sendOKResponse(message, rinfo);
+    } else if (firstLine.includes('CANCEL sip:')) {
+      // L'appel a été annulé
+      console.log('🚫 CANCEL reçu - L\'appel a été annulé');
+      // Annuler le timeout
+      if (this.callTimeout) {
+        clearTimeout(this.callTimeout);
+        this.callTimeout = null;
+      }
+      this.emit('call-cancelled');
+      this.sendOKResponse(message, rinfo);
+    } else if (firstLine.includes('SIP/2.0 486') || firstLine.includes('SIP/2.0 603')) {
+      // Busy ou Decline = quelqu'un a rejeté l'appel
+      console.log('🔴 Appel rejeté/occupé');
+      if (this.callTimeout) {
+        clearTimeout(this.callTimeout);
+        this.callTimeout = null;
+      }
+      this.emit('call-rejected');
     } else if (firstLine.includes('SIP/2.0 403 Forbidden')) {
       this.emit('error', new Error('Identifiants SIP incorrects'));
     } else if (firstLine.includes('SIP/2.0 404 Not Found')) {
@@ -262,6 +320,22 @@ class NativeSIPClient extends EventEmitter {
     const fromMatch = message.match(/From: .*<sip:([^@]+)@/);
     const callerNumber = fromMatch ? fromMatch[1] : 'Numéro inconnu';
 
+    // Extraire le Call-ID pour suivre cet appel
+    const callIdMatch = message.match(/Call-ID: (.+)/);
+    const callId = callIdMatch ? callIdMatch[1].trim() : null;
+
+    // Annuler le timeout précédent s'il existe
+    if (this.callTimeout) {
+      clearTimeout(this.callTimeout);
+    }
+
+    // Stocker les infos de l'appel en cours
+    this.currentCall = {
+      callId: callId,
+      callerNumber: callerNumber,
+      message: message,
+      rinfo: rinfo
+    };
 
     // Formater le numéro comme Zoiper
     const formattedNumber = this.formatPhoneNumber(callerNumber);
@@ -269,8 +343,16 @@ class NativeSIPClient extends EventEmitter {
     // Envoyer l'événement d'appel entrant
     this.emit('incoming-call', formattedNumber);
 
-    // Rejeter automatiquement l'appel (nous voulons juste l'intercepter)
-    this.sendBusyHere(message, rinfo);
+    // Envoyer "180 Ringing" pour garder la session ouverte et observer l'appel
+    this.sendRingingResponse(message, rinfo);
+
+    // Timeout de 30 secondes : si rien ne se passe, rejeter l'appel
+    this.callTimeout = setTimeout(() => {
+      console.log('⏰ Timeout de sonnerie - Rejet de l\'appel');
+      this.sendBusyHere(message, rinfo);
+      this.emit('call-timeout');
+      this.currentCall = null;
+    }, 30000);
   }
 
   sendBusyHere(originalMessage, rinfo) {
@@ -309,6 +391,82 @@ class NativeSIPClient extends EventEmitter {
     ].join('\r\n');
 
     this.socket.send(busyResponse, rinfo.port, rinfo.address);
+  }
+
+  sendRingingResponse(originalMessage, rinfo) {
+    // Extraire les headers nécessaires pour la réponse
+    const lines = originalMessage.split('\r\n');
+    let via = '';
+    let from = '';
+    let to = '';
+    let callId = '';
+    let cseq = '';
+
+    lines.forEach(line => {
+      if (line.startsWith('Via:')) via = line;
+      if (line.startsWith('From:')) from = line;
+      if (line.startsWith('To:')) to = line;
+      if (line.startsWith('Call-ID:')) callId = line;
+      if (line.startsWith('CSeq:')) cseq = line;
+    });
+
+    // Ajouter un tag au To header s'il n'en a pas
+    if (to && !to.includes('tag=')) {
+      to += `;tag=${Math.random().toString(36).substr(2, 10)}`;
+    }
+
+    const ringingResponse = [
+      'SIP/2.0 180 Ringing',
+      via,
+      from,
+      to,
+      callId,
+      cseq,
+      'User-Agent: Interfone-Odoo-Connector/1.0',
+      'Content-Length: 0',
+      '',
+      ''
+    ].join('\r\n');
+
+    this.socket.send(ringingResponse, rinfo.port, rinfo.address);
+  }
+
+  sendOKResponse(originalMessage, rinfo) {
+    // Extraire les headers nécessaires pour la réponse
+    const lines = originalMessage.split('\r\n');
+    let via = '';
+    let from = '';
+    let to = '';
+    let callId = '';
+    let cseq = '';
+
+    lines.forEach(line => {
+      if (line.startsWith('Via:')) via = line;
+      if (line.startsWith('From:')) from = line;
+      if (line.startsWith('To:')) to = line;
+      if (line.startsWith('Call-ID:')) callId = line;
+      if (line.startsWith('CSeq:')) cseq = line;
+    });
+
+    // Ajouter un tag au To header s'il n'en a pas
+    if (to && !to.includes('tag=')) {
+      to += `;tag=${Math.random().toString(36).substr(2, 10)}`;
+    }
+
+    const okResponse = [
+      'SIP/2.0 200 OK',
+      via,
+      from,
+      to,
+      callId,
+      cseq,
+      'User-Agent: Interfone-Odoo-Connector/1.0',
+      'Content-Length: 0',
+      '',
+      ''
+    ].join('\r\n');
+
+    this.socket.send(okResponse, rinfo.port, rinfo.address);
   }
 
   formatPhoneNumber(number) {

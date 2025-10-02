@@ -390,6 +390,41 @@ ipcMain.handle('sip-connect', async (event, config) => {
       createPopupWindow(callerNumber);
     });
 
+    sipClient.on('call-answered', () => {
+      console.log('✅ Appel décroché - Fermeture de la popup');
+      if (popupWindow) {
+        popupWindow.close();
+      }
+    });
+
+    sipClient.on('call-ended', () => {
+      console.log('📴 Appel terminé - Fermeture de la popup');
+      if (popupWindow) {
+        popupWindow.close();
+      }
+    });
+
+    sipClient.on('call-cancelled', () => {
+      console.log('🚫 Appel annulé - Fermeture de la popup');
+      if (popupWindow) {
+        popupWindow.close();
+      }
+    });
+
+    sipClient.on('call-timeout', () => {
+      console.log('⏰ Timeout de sonnerie - Fermeture de la popup');
+      if (popupWindow) {
+        popupWindow.close();
+      }
+    });
+
+    sipClient.on('call-rejected', () => {
+      console.log('🔴 Appel rejeté - Fermeture de la popup');
+      if (popupWindow) {
+        popupWindow.close();
+      }
+    });
+
     sipClient.on('disconnected', () => {
       console.log('🔌 SIP déconnecté');
       sipConnected = false;
@@ -481,6 +516,10 @@ ipcMain.on('open-odoo', (event, phoneNumber) => {
   } else if (cleanNumber.startsWith('44')) {
     cleanNumber = cleanNumber.substring(2);
   }
+
+  // Supprimer tous les zéros en début de numéro
+  // Ex: 0494202552 -> 494202552
+  cleanNumber = cleanNumber.replace(/^0+/, '');
 
   const searchNumber = cleanNumber;
   const interfoneUrl = `${odooUrl}/web#action=424&model=res.partner&view_type=list&cids=5-2-1&menu_id=283#interfone:${searchNumber}`;
