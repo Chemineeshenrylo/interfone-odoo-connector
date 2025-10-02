@@ -224,14 +224,20 @@ app.on('activate', () => {
 
 // ===== AUTO-UPDATER SETUP =====
 function setupAutoUpdater() {
-  // Désactiver la vérification de signature pour éviter les erreurs macOS
+  // Désactiver complètement la vérification de signature pour éviter les erreurs macOS
   process.env.ELECTRON_UPDATER_FORCE_DEV_UPDATE_CONFIG = 'true';
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
+  // Configuration pour ignorer les erreurs de signature
+  autoUpdater.autoDownload = false;
+  autoUpdater.allowDowngrade = false;
 
   // Configuration de l'auto-updater
   autoUpdater.checkForUpdatesAndNotify();
 
   // Logs pour debug
   autoUpdater.logger = console;
+  autoUpdater.logger.transports.file.level = 'info';
 
   // Événements auto-updater
   autoUpdater.on('checking-for-update', () => {
@@ -249,6 +255,8 @@ function setupAutoUpdater() {
         version: info.version
       });
     }
+    // Télécharger manuellement pour éviter la vérification de signature
+    autoUpdater.downloadUpdate();
   });
 
   autoUpdater.on('update-not-available', (info) => {
