@@ -224,6 +224,9 @@ app.on('activate', () => {
 
 // ===== AUTO-UPDATER SETUP =====
 function setupAutoUpdater() {
+  // Désactiver la vérification de signature pour éviter les erreurs macOS
+  process.env.ELECTRON_UPDATER_FORCE_DEV_UPDATE_CONFIG = 'true';
+
   // Configuration de l'auto-updater
   autoUpdater.checkForUpdatesAndNotify();
 
