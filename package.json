@@ -1,6 +1,6 @@
 {
   "name": "interfone-odoo-connector",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -27,7 +27,13 @@
       "identity": null,
       "type": "development",
       "gatekeeperAssess": false,
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "target": [
+        {
+          "target": "zip",
+          "arch": ["arm64"]
+        }
+      ]
     },
     "win": {
       "target": "nsis",

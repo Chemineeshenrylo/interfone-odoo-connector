@@ -232,6 +232,11 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.allowDowngrade = false;
 
+  // IMPORTANT: Désactiver la vérification de signature pour macOS
+  if (process.platform === 'darwin') {
+    process.env.ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES = 'true';
+  }
+
   // Logs pour debug
   autoUpdater.logger = console;
 
