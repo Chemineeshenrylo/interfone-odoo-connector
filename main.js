@@ -232,12 +232,11 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.allowDowngrade = false;
 
-  // Configuration de l'auto-updater
-  autoUpdater.checkForUpdatesAndNotify();
-
   // Logs pour debug
   autoUpdater.logger = console;
-  autoUpdater.logger.transports.file.level = 'info';
+
+  // Configuration de l'auto-updater
+  autoUpdater.checkForUpdatesAndNotify();
 
   // Événements auto-updater
   autoUpdater.on('checking-for-update', () => {
