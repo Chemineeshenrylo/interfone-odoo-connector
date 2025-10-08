@@ -1,6 +1,6 @@
 {
   "name": "interfone-odoo-connector",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -32,7 +32,9 @@
       "target": [
         {
           "target": "zip",
-          "arch": ["arm64"]
+          "arch": [
+            "arm64"
+          ]
         }
       ]
     },
@@ -40,7 +42,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.ico",
@@ -71,6 +75,7 @@
   "description": "Desktop application for Interfone SIP integration with Odoo CRM",
   "dependencies": {
     "drachtio-srf": "^5.0.13",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.0",
     "electron-updater": "^6.6.2",
     "sip": "^0.0.6",

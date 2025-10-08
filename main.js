@@ -1,9 +1,15 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, shell, Notification, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store').default || require('electron-store');
 const NativeSIPClient = require('./native-sip-client');
+
+// Configuration du logger pour l'auto-updater
+autoUpdater.logger = log;
+log.transports.file.level = 'info';
+log.info('App starting...');
 
 const store = new Store();
 let mainWindow = null;
@@ -218,45 +224,48 @@ app.on('window-all-closed', () => {
 
 // Nettoyer proprement avant de quitter (important pour Windows)
 app.on('before-quit', async (event) => {
-  if (!app.isQuitting) {
-    event.preventDefault();
-    app.isQuitting = true;
-
-    console.log('🧹 Nettoyage avant fermeture...');
-
-    // Détruire le Tray en premier (CRUCIAL pour Windows)
-    if (tray && !tray.isDestroyed()) {
-      console.log('🗑️ Destruction du Tray...');
-      tray.destroy();
-      tray = null;
-    }
-
-    // Déconnecter le client SIP proprement
-    if (sipClient) {
-      try {
-        console.log('🔌 Déconnexion du client SIP...');
-        await sipClient.disconnect();
-      } catch (error) {
-        console.error('Erreur lors de la déconnexion SIP:', error);
-      }
-    }
-
-    // Fermer toutes les fenêtres
-    if (popupWindow && !popupWindow.isDestroyed()) {
-      popupWindow.destroy();
-      popupWindow = null;
-    }
-
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.destroy();
-      mainWindow = null;
-    }
-
-    console.log('✅ Nettoyage terminé');
-
-    // Quitter réellement
-    app.quit();
+  // Si on est déjà en train de quitter (ex: via quitAndInstall), ne pas bloquer
+  if (app.isQuitting) {
+    log.info('✅ Fermeture en cours...');
+    return; // Laisser la fermeture se faire
   }
+
+  // Sinon, faire le nettoyage proprement
+  event.preventDefault();
+  app.isQuitting = true;
+
+  log.info('🧹 Nettoyage avant fermeture...');
+
+  // Détruire le Tray
+  if (tray && !tray.isDestroyed()) {
+    log.info('🗑️ Destruction du Tray...');
+    tray.destroy();
+    tray = null;
+  }
+
+  // Déconnecter le client SIP
+  if (sipClient) {
+    try {
+      log.info('🔌 Déconnexion du client SIP...');
+      await sipClient.disconnect();
+    } catch (error) {
+      log.error('Erreur lors de la déconnexion SIP:', error);
+    }
+  }
+
+  // Fermer les fenêtres
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.destroy();
+    popupWindow = null;
+  }
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.destroy();
+    mainWindow = null;
+  }
+
+  log.info('✅ Nettoyage terminé');
+  app.quit();
 });
 
 app.on('activate', () => {
@@ -267,53 +276,37 @@ app.on('activate', () => {
 
 // ===== AUTO-UPDATER SETUP =====
 function setupAutoUpdater() {
-  // Désactiver complètement la vérification de signature pour éviter les erreurs macOS
-  process.env.ELECTRON_UPDATER_FORCE_DEV_UPDATE_CONFIG = 'true';
-  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+  log.info('📦 Configuration de l\'auto-updater...');
 
-  // Configuration pour ignorer les erreurs de signature
-  autoUpdater.autoDownload = false;
-  autoUpdater.allowDowngrade = false;
-
-  // IMPORTANT: Désactiver complètement la vérification de signature pour macOS
-  if (process.platform === 'darwin') {
-    autoUpdater.forceDevUpdateConfig = true;
-    process.env.ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES = 'true';
-  }
-
-  // Forcer l'installation sans vérification de signature
+  // Configuration simple
+  autoUpdater.autoDownload = false; // On télécharge manuellement après confirmation
   autoUpdater.allowPrerelease = false;
-  autoUpdater.fullChangelog = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false; // On gère l'installation nous-mêmes
 
-  // Logs pour debug
-  autoUpdater.logger = console;
-
-  // Configuration de l'auto-updater
+  // Lancer la vérification au démarrage
   autoUpdater.checkForUpdatesAndNotify();
 
-  // Événements auto-updater
+  // Événements
   autoUpdater.on('checking-for-update', () => {
-    console.log('🔍 Vérification des mises à jour...');
+    log.info('🔍 Vérification des mises à jour...');
     if (mainWindow) {
       mainWindow.webContents.send('update-status', { status: 'checking' });
     }
   });
 
   autoUpdater.on('update-available', (info) => {
-    console.log('📥 Mise à jour disponible:', info.version);
+    log.info('📥 Mise à jour disponible:', info.version);
     if (mainWindow) {
       mainWindow.webContents.send('update-status', {
         status: 'available',
         version: info.version
       });
     }
-    // Télécharger manuellement pour éviter la vérification de signature
     autoUpdater.downloadUpdate();
   });
 
   autoUpdater.on('update-not-available', (info) => {
-    console.log('✅ Application à jour:', info.version);
+    log.info('✅ Application à jour');
     if (mainWindow) {
       mainWindow.webContents.send('update-status', {
         status: 'not-available',
@@ -323,7 +316,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('error', (err) => {
-    console.error('❌ Erreur mise à jour:', err);
+    log.error('❌ Erreur mise à jour:', err);
     if (mainWindow) {
       mainWindow.webContents.send('update-status', {
         status: 'error',
@@ -333,8 +326,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
-    let log_message = `📥 Téléchargement ${progressObj.percent.toFixed(1)}%`;
-    console.log(log_message);
+    log.info(`📥 Téléchargement ${progressObj.percent.toFixed(1)}%`);
     if (mainWindow) {
       mainWindow.webContents.send('update-status', {
         status: 'downloading',
@@ -344,7 +336,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('✅ Mise à jour téléchargée:', info.version);
+    log.info('✅ Mise à jour téléchargée:', info.version);
     if (mainWindow) {
       mainWindow.webContents.send('update-status', {
         status: 'downloaded',
@@ -352,49 +344,25 @@ function setupAutoUpdater() {
       });
     }
 
-    // Proposer d'installer immédiatement
+    // Proposer d'installer
     dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Mise à jour prête',
-      message: `La mise à jour vers la version ${info.version} est prête à être installée.`,
-      detail: 'L\'application va se fermer. L\'installateur se lancera automatiquement.',
+      message: `La mise à jour vers la version ${info.version} est prête.`,
+      detail: 'L\'application va redémarrer pour installer la mise à jour.',
       buttons: ['Installer maintenant', 'Plus tard'],
       defaultId: 0
-    }).then(async (result) => {
+    }).then((result) => {
       if (result.response === 0) {
+        log.info('🔄 Installation de la mise à jour...');
+
+        // Marquer qu'on quitte
         app.isQuitting = true;
 
-        // Nettoyage complet avant fermeture
-        if (tray && !tray.isDestroyed()) {
-          tray.destroy();
-          tray = null;
-        }
-
-        if (sipClient) {
-          await sipClient.disconnect();
-        }
-
-        if (popupWindow && !popupWindow.isDestroyed()) {
-          popupWindow.destroy();
-          popupWindow = null;
-        }
-
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.destroy();
-          mainWindow = null;
-        }
-
-        // Sur Windows: juste quitter, l'installateur téléchargé se lancera automatiquement
-        // Sur macOS: utiliser quitAndInstall
-        setTimeout(() => {
-          if (process.platform === 'win32') {
-            console.log('🪟 Windows: Fermeture de l\'app, l\'installateur NSIS va se lancer...');
-            app.quit();
-          } else {
-            console.log('🍎 macOS: Utilisation de quitAndInstall...');
-            autoUpdater.quitAndInstall(false, true);
-          }
-        }, 500);
+        // Laisser autoUpdater gérer TOUT le processus
+        setImmediate(() => {
+          autoUpdater.quitAndInstall(false, true);
+        });
       }
     });
   });
@@ -411,46 +379,15 @@ ipcMain.handle('check-for-updates', async () => {
 });
 
 ipcMain.handle('install-update', async () => {
-  console.log('🔄 Installation de la mise à jour...');
-
-  // Détruire le Tray en premier (CRUCIAL pour Windows)
-  if (tray && !tray.isDestroyed()) {
-    console.log('🗑️ Destruction du Tray...');
-    tray.destroy();
-    tray = null;
-  }
-
-  // Nettoyer proprement avant de quitter
-  if (sipClient) {
-    console.log('🔌 Déconnexion du client SIP...');
-    await sipClient.disconnect();
-  }
-
-  // Fermer toutes les fenêtres
-  if (popupWindow && !popupWindow.isDestroyed()) {
-    popupWindow.destroy();
-    popupWindow = null;
-  }
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.destroy();
-    mainWindow = null;
-  }
+  log.info('🔄 Demande d\'installation de la mise à jour...');
 
   // Marquer qu'on quitte
   app.isQuitting = true;
 
-  // Sur Windows: juste quitter proprement, l'installateur téléchargé se lancera automatiquement
-  // Sur macOS: utiliser quitAndInstall
-  setTimeout(() => {
-    if (process.platform === 'win32') {
-      console.log('🪟 Windows: Fermeture de l\'app, l\'installateur NSIS va se lancer...');
-      app.quit();
-    } else {
-      console.log('🍎 macOS: Utilisation de quitAndInstall...');
-      autoUpdater.quitAndInstall(false, true);
-    }
-  }, 500);
+  // Laisser autoUpdater gérer tout le processus de fermeture
+  setImmediate(() => {
+    autoUpdater.quitAndInstall(false, true);
+  });
 });
 
 // Handler de test pour simuler le processus de fermeture d'update
