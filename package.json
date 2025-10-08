@@ -10,7 +10,7 @@
   },
   "build": {
     "appId": "com.interfone.odoo.connector",
-    "productName": "Interfone Odoo Connector",
+    "productName": "Interfone-Odoo-Connector",
     "directories": {
       "output": "dist"
     },
@@ -51,7 +51,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Interfone Odoo Connector"
+      "shortcutName": "Interfone-Odoo-Connector"
     },
     "linux": {
       "target": "AppImage",
