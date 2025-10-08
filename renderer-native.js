@@ -163,7 +163,6 @@ if (window.location.pathname.includes('settings.html')) {
         loader.classList.add('show');
       }
 
-
       try {
         await sipClient.connect(settings);
         btn.textContent = 'Se déconnecter';

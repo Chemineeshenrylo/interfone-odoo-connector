@@ -44,5 +44,12 @@ window.electronAPI = {
     ipcRenderer.on('sip-status-changed', (event, connected) => {
       callback(connected);
     });
+  },
+
+  onCallEvent: (callback) => {
+    ipcRenderer.removeAllListeners('call-event');
+    ipcRenderer.on('call-event', (event, callData) => {
+      callback(callData);
+    });
   }
 };

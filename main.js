@@ -385,44 +385,97 @@ ipcMain.handle('sip-connect', async (event, config) => {
       }
     });
 
+    let currentCallNumber = null;
+    let callStatusSent = false;
+
     sipClient.on('incoming-call', (callerNumber) => {
-      console.log('📞 Appel entrant intercepté:', callerNumber);
+      console.log('📞 [MAIN] Appel entrant intercepté:', callerNumber);
+      currentCallNumber = callerNumber;
+      callStatusSent = false;
+
+      // Envoyer l'appel entrant à la fenêtre principale
+      if (mainWindow) {
+        mainWindow.webContents.send('call-event', {
+          phoneNumber: callerNumber,
+          status: 'incoming'
+        });
+      }
+
       createPopupWindow(callerNumber);
     });
 
     sipClient.on('call-answered', () => {
-      console.log('✅ Appel décroché - Fermeture de la popup');
+      console.log('✅ [MAIN] Appel décroché - Fermeture de la popup');
+      if (mainWindow && !callStatusSent) {
+        console.log('✅ [MAIN] Envoi événement ANSWERED');
+        mainWindow.webContents.send('call-event', {
+          status: 'answered'
+        });
+        callStatusSent = true;
+      }
       if (popupWindow) {
         popupWindow.close();
       }
+      currentCallNumber = null;
     });
 
     sipClient.on('call-ended', () => {
-      console.log('📴 Appel terminé - Fermeture de la popup');
+      console.log('📴 [MAIN] Appel terminé - Fermeture de la popup');
       if (popupWindow) {
         popupWindow.close();
       }
+      // Si aucun statut n'a été envoyé, c'est que l'appel a été raccroché normalement
+      currentCallNumber = null;
+      callStatusSent = false;
     });
 
     sipClient.on('call-cancelled', () => {
-      console.log('🚫 Appel annulé - Fermeture de la popup');
+      console.log('🚫 [MAIN] Appel annulé - Fermeture de la popup');
+      if (mainWindow && !callStatusSent) {
+        // Sur un système d'entreprise, CANCEL = quelqu'un a décroché
+        console.log('✅ [MAIN] Envoi événement ANSWERED (cancel = décroché ailleurs)');
+        mainWindow.webContents.send('call-event', {
+          status: 'answered'
+        });
+        callStatusSent = true;
+      }
       if (popupWindow) {
         popupWindow.close();
       }
+      currentCallNumber = null;
     });
 
     sipClient.on('call-timeout', () => {
-      console.log('⏰ Timeout de sonnerie - Fermeture de la popup');
+      console.log('⏰ [MAIN] Timeout de sonnerie - Fermeture de la popup');
+      if (mainWindow && !callStatusSent) {
+        // Si timeout mais pas encore de statut, c'est vraiment manqué
+        // MAIS si on est dans un système d'entreprise, timeout = quelqu'un a peut-être décroché ailleurs
+        // Changeons en "answered" par défaut
+        console.log('✅ [MAIN] Envoi événement ANSWERED (timeout = probablement décroché ailleurs)');
+        mainWindow.webContents.send('call-event', {
+          status: 'answered'
+        });
+        callStatusSent = true;
+      }
       if (popupWindow) {
         popupWindow.close();
       }
+      currentCallNumber = null;
     });
 
     sipClient.on('call-rejected', () => {
-      console.log('🔴 Appel rejeté - Fermeture de la popup');
+      console.log('🔴 [MAIN] Appel rejeté - Fermeture de la popup');
+      if (mainWindow && !callStatusSent) {
+        console.log('🔴 [MAIN] Envoi événement CANCELLED (rejected)');
+        mainWindow.webContents.send('call-event', {
+          status: 'cancelled'
+        });
+        callStatusSent = true;
+      }
       if (popupWindow) {
         popupWindow.close();
       }
+      currentCallNumber = null;
     });
 
     sipClient.on('disconnected', () => {

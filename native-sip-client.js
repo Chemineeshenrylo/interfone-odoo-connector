@@ -14,6 +14,9 @@ class NativeSIPClient extends EventEmitter {
     this.branch = 'z9hG4bK' + Math.random().toString(36).substr(2, 10);
     this.tag = Math.random().toString(36).substr(2, 10);
     this.cseq = 1;
+    this.registerTimer = null;
+    this.keepAliveTimer = null;
+    this.processedCallIds = new Set(); // Pour éviter les doublons d'appels
   }
 
   async connect(config) {
@@ -132,6 +135,11 @@ class NativeSIPClient extends EventEmitter {
     if (firstLine.includes('SIP/2.0 200 OK')) {
       if (message.includes('REGISTER')) {
         this.registered = true;
+
+        // Démarrer les mécanismes de keep-alive après une registration réussie
+        this.scheduleReRegister();
+        this.startKeepAlive();
+
         this.emit('registered');
       } else {
         // 200 OK pour autre chose que REGISTER = potentiellement un appel décroché
@@ -160,7 +168,14 @@ class NativeSIPClient extends EventEmitter {
         clearTimeout(this.callTimeout);
         this.callTimeout = null;
       }
-      this.emit('call-answered');
+      // Ne pas émettre call-answered ici car déjà fait avec 200 OK
+      // Seulement s'il n'y a pas de currentCall (cas rare)
+      if (!this.currentCall || !this.currentCall.answered) {
+        this.emit('call-answered');
+        if (this.currentCall) {
+          this.currentCall.answered = true;
+        }
+      }
     } else if (firstLine.includes('SIP/2.0 401 Unauthorized') || firstLine.includes('SIP/2.0 407 Proxy Authentication Required')) {
       this.handleAuthentication(message, rinfo);
     } else if (firstLine.includes('INVITE sip:')) {
@@ -324,6 +339,24 @@ class NativeSIPClient extends EventEmitter {
     const callIdMatch = message.match(/Call-ID: (.+)/);
     const callId = callIdMatch ? callIdMatch[1].trim() : null;
 
+    // Vérifier si on a déjà traité cet appel (déduplication)
+    if (callId && this.processedCallIds.has(callId)) {
+      console.log('🔄 INVITE en double ignoré (Call-ID déjà traité)');
+      // Envoyer quand même le "180 Ringing" pour maintenir la session
+      this.sendRingingResponse(message, rinfo);
+      return;
+    }
+
+    // Marquer cet appel comme traité
+    if (callId) {
+      this.processedCallIds.add(callId);
+
+      // Nettoyer les vieux Call-IDs après 2 minutes pour éviter la saturation mémoire
+      setTimeout(() => {
+        this.processedCallIds.delete(callId);
+      }, 120000);
+    }
+
     // Annuler le timeout précédent s'il existe
     if (this.callTimeout) {
       clearTimeout(this.callTimeout);
@@ -340,7 +373,7 @@ class NativeSIPClient extends EventEmitter {
     // Formater le numéro comme Zoiper
     const formattedNumber = this.formatPhoneNumber(callerNumber);
 
-    // Envoyer l'événement d'appel entrant
+    // Envoyer l'événement d'appel entrant (UNE SEULE FOIS)
     this.emit('incoming-call', formattedNumber);
 
     // Envoyer "180 Ringing" pour garder la session ouverte et observer l'appel
@@ -498,6 +531,19 @@ class NativeSIPClient extends EventEmitter {
 
   async disconnect() {
 
+    // Nettoyer les timers de keep-alive
+    if (this.registerTimer) {
+      clearInterval(this.registerTimer);
+      this.registerTimer = null;
+      console.log('⏰ Timer de re-REGISTER arrêté');
+    }
+
+    if (this.keepAliveTimer) {
+      clearInterval(this.keepAliveTimer);
+      this.keepAliveTimer = null;
+      console.log('💓 Timer de keep-alive arrêté');
+    }
+
     if (this.socket) {
       this.socket.close();
       this.socket = null;
@@ -555,6 +601,92 @@ class NativeSIPClient extends EventEmitter {
       }
     }
     return '127.0.0.1'; // Fallback
+  }
+
+  // Planifier un re-REGISTER périodique pour maintenir l'enregistrement
+  scheduleReRegister() {
+    // Nettoyer le timer précédent s'il existe
+    if (this.registerTimer) {
+      clearInterval(this.registerTimer);
+    }
+
+    // Re-REGISTER toutes les 30 minutes (avant expiration de 1h)
+    this.registerTimer = setInterval(async () => {
+      if (this.registered && this.config) {
+        console.log('🔄 Re-REGISTER automatique pour maintenir la connexion...');
+
+        try {
+          // Incrémenter le CSeq pour le nouveau REGISTER
+          this.cseq++;
+
+          // Si on a déjà les paramètres d'auth (probable après la première connexion)
+          // On pourrait les stocker, mais pour simplifier, on refait un REGISTER simple
+          // Le serveur renverra un 401 et on s'authentifiera
+          await this.sendRegister();
+        } catch (error) {
+          console.error('❌ Erreur lors du re-REGISTER:', error);
+          // En cas d'erreur, émettre un événement de déconnexion
+          this.registered = false;
+          this.emit('disconnected');
+        }
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+
+    console.log('⏰ Re-REGISTER planifié toutes les 30 minutes');
+  }
+
+  // Démarrer le keep-alive pour maintenir le mapping NAT ouvert
+  startKeepAlive() {
+    // Nettoyer le timer précédent s'il existe
+    if (this.keepAliveTimer) {
+      clearInterval(this.keepAliveTimer);
+    }
+
+    // Envoyer un OPTIONS toutes les 30 secondes
+    this.keepAliveTimer = setInterval(() => {
+      if (this.registered && this.socket) {
+        this.sendKeepAlive();
+      }
+    }, 30 * 1000); // 30 secondes
+
+    console.log('💓 Keep-alive démarré (OPTIONS toutes les 30s)');
+  }
+
+  // Envoyer un message OPTIONS pour garder le NAT ouvert
+  sendKeepAlive() {
+    const [serverHost, serverPort] = this.config.sipServer.split(':');
+    const port = serverPort || '5060';
+    const localAddress = this.socket.address();
+    const realLocalIP = this.getLocalIP();
+    const realm = '3298632.interfone';
+
+    // Générer un nouveau branch pour ce message
+    const keepAliveBranch = 'z9hG4bK' + Math.random().toString(36).substr(2, 10);
+
+    const optionsMessage = [
+      `OPTIONS sip:${realm} SIP/2.0`,
+      `Via: SIP/2.0/UDP ${realLocalIP}:${localAddress.port};branch=${keepAliveBranch}`,
+      `From: <sip:${this.config.sipUsername}@${realm}>;tag=${this.tag}`,
+      `To: <sip:${realm}>`,
+      `Call-ID: ${this.callId}@${realLocalIP}`,
+      `CSeq: ${this.cseq} OPTIONS`,
+      `Max-Forwards: 70`,
+      `User-Agent: Interfone-Odoo-Connector/1.0`,
+      `Content-Length: 0`,
+      '',
+      ''
+    ].join('\r\n');
+
+    this.socket.send(optionsMessage, parseInt(port), serverHost, (err) => {
+      if (err) {
+        console.error('❌ Erreur envoi keep-alive:', err);
+      } else {
+        console.log('💓 Keep-alive envoyé (OPTIONS)');
+      }
+    });
+
+    // Incrémenter CSeq pour le prochain message
+    this.cseq++;
   }
 }
 

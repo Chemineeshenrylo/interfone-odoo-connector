@@ -12,142 +12,123 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: rgba(0, 0, 0, 0.5);
       height: 100vh;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      color: white;
       padding: 20px;
-      user-select: none;
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 30px;
-      text-align: center;
+      background: #ffffff;
+      border: 1px solid #d4d4d4;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       width: 100%;
-      max-width: 350px;
-      animation: slideIn 0.3s ease-out;
+      max-width: 320px;
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .header {
+      background: #f8f8f8;
+      color: #333;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid #d4d4d4;
     }
 
-    .icon {
-      width: 60px;
-      height: 60px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      animation: pulse 2s infinite;
+    .content {
+      padding: 20px;
     }
 
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.05);
-      }
-      100% {
-        transform: scale(1);
-      }
+    .call-info {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .icon svg {
-      width: 30px;
-      height: 30px;
-      fill: white;
-    }
-
-    h2 {
-      font-size: 18px;
-      font-weight: 400;
-      margin-bottom: 15px;
-      opacity: 0.9;
+    .call-label {
+      font-size: 11px;
+      color: #777;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .phone-number {
-      font-size: 28px;
+      font-size: 20px;
       font-weight: 600;
-      margin-bottom: 25px;
-      letter-spacing: 1px;
+      color: #333;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 12px;
     }
 
     .buttons {
       display: flex;
-      gap: 10px;
-      justify-content: center;
+      gap: 8px;
     }
 
     button {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid #adadad;
+      font-size: 12px;
+      font-weight: 400;
       cursor: pointer;
-      transition: all 0.3s ease;
-      outline: none;
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    button:hover {
+      background: #e5e5e5;
+      border-color: #999;
+    }
+
+    button:active {
+      background: #d8d8d8;
     }
 
     .btn-odoo {
-      background: white;
-      color: #764ba2;
-      flex: 1;
+      background: #0078d4;
+      color: white;
+      border-color: #0078d4;
     }
 
     .btn-odoo:hover {
-      background: #f0f0f0;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      background: #006cbe;
+      border-color: #006cbe;
+    }
+
+    .btn-odoo:active {
+      background: #005a9e;
     }
 
     .btn-close {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-
-    .btn-close:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: #f0f0f0;
     }
 
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-      </svg>
-    </div>
+    <div class="header">Appel entrant</div>
 
-    <h2>Appel entrant</h2>
-    <div class="phone-number" id="phone-number">+32 475 12 34 56</div>
+    <div class="content">
+      <div class="call-info">
+        <div class="call-label">Numéro de téléphone</div>
+        <div class="phone-number" id="phone-number">+32 475 12 34 56</div>
+      </div>
 
-    <div class="buttons">
-      <button class="btn-odoo" onclick="openInOdoo()">
-        Trouver dans Odoo
-      </button>
-      <button class="btn-close" onclick="closePopup()">
-        Fermer
-      </button>
+      <div class="buttons">
+        <button class="btn-odoo" onclick="openInOdoo()">
+          Chercher dans Odoo
+        </button>
+        <button class="btn-close" onclick="closePopup()">
+          Fermer
+        </button>
+      </div>
     </div>
 
   </div>
