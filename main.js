@@ -281,7 +281,10 @@ function setupAutoUpdater() {
   // Configuration simple
   autoUpdater.autoDownload = false; // On télécharge manuellement après confirmation
   autoUpdater.allowPrerelease = false;
-  autoUpdater.autoInstallOnAppQuit = false; // On gère l'installation nous-mêmes
+
+  // Sur Windows: installer automatiquement quand l'user ferme l'app
+  // Sur macOS: on gère manuellement avec quitAndInstall
+  autoUpdater.autoInstallOnAppQuit = (process.platform === 'win32');
 
   // Lancer la vérification au démarrage
   autoUpdater.checkForUpdatesAndNotify();
@@ -344,27 +347,35 @@ function setupAutoUpdater() {
       });
     }
 
-    // Proposer d'installer
-    dialog.showMessageBox(mainWindow, {
-      type: 'info',
-      title: 'Mise à jour prête',
-      message: `La mise à jour vers la version ${info.version} est prête.`,
-      detail: 'L\'application va redémarrer pour installer la mise à jour.',
-      buttons: ['Installer maintenant', 'Plus tard'],
-      defaultId: 0
-    }).then((result) => {
-      if (result.response === 0) {
-        log.info('🔄 Installation de la mise à jour...');
-
-        // Marquer qu'on quitte
-        app.isQuitting = true;
-
-        // Laisser autoUpdater gérer TOUT le processus
-        setImmediate(() => {
-          autoUpdater.quitAndInstall(false, true);
-        });
-      }
-    });
+    // Sur Windows: approche différente - demander à l'utilisateur de fermer manuellement
+    if (process.platform === 'win32') {
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Mise à jour téléchargée',
+        message: `La mise à jour vers la version ${info.version} a été téléchargée.`,
+        detail: 'Fermez l\'application quand vous êtes prêt. L\'installateur se lancera automatiquement.',
+        buttons: ['OK'],
+        defaultId: 0
+      });
+    } else {
+      // Sur macOS: utiliser quitAndInstall normalement
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Mise à jour prête',
+        message: `La mise à jour vers la version ${info.version} est prête.`,
+        detail: 'L\'application va redémarrer pour installer la mise à jour.',
+        buttons: ['Installer maintenant', 'Plus tard'],
+        defaultId: 0
+      }).then((result) => {
+        if (result.response === 0) {
+          log.info('🔄 Installation de la mise à jour...');
+          app.isQuitting = true;
+          setImmediate(() => {
+            autoUpdater.quitAndInstall(false, true);
+          });
+        }
+      });
+    }
   });
 }
 
@@ -381,10 +392,14 @@ ipcMain.handle('check-for-updates', async () => {
 ipcMain.handle('install-update', async () => {
   log.info('🔄 Demande d\'installation de la mise à jour...');
 
-  // Marquer qu'on quitte
-  app.isQuitting = true;
+  // Sur Windows: juste informer, l'update s'installera au prochain quit
+  if (process.platform === 'win32') {
+    log.info('ℹ️ Windows: L\'update s\'installera automatiquement au prochain redémarrage');
+    return { message: 'Fermez l\'application pour installer la mise à jour' };
+  }
 
-  // Laisser autoUpdater gérer tout le processus de fermeture
+  // Sur macOS: utiliser quitAndInstall
+  app.isQuitting = true;
   setImmediate(() => {
     autoUpdater.quitAndInstall(false, true);
   });
