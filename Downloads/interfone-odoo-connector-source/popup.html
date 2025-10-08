@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appel entrant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: rgba(0, 0, 0, 0.5);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      border: 1px solid #d4d4d4;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .header {
+      background: #f8f8f8;
+      color: #333;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid #d4d4d4;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .call-info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .call-label {
+      font-size: 11px;
+      color: #777;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .phone-number {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 12px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid #adadad;
+      font-size: 12px;
+      font-weight: 400;
+      cursor: pointer;
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    button:hover {
+      background: #e5e5e5;
+      border-color: #999;
+    }
+
+    button:active {
+      background: #d8d8d8;
+    }
+
+    .btn-odoo {
+      background: #0078d4;
+      color: white;
+      border-color: #0078d4;
+    }
+
+    .btn-odoo:hover {
+      background: #006cbe;
+      border-color: #006cbe;
+    }
+
+    .btn-odoo:active {
+      background: #005a9e;
+    }
+
+    .btn-close {
+      background: #f0f0f0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Appel entrant</div>
+
+    <div class="content">
+      <div class="call-info">
+        <div class="call-label">Numéro de téléphone</div>
+        <div class="phone-number" id="phone-number">+32 475 12 34 56</div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn-odoo" onclick="openInOdoo()">
+          Chercher dans Odoo
+        </button>
+        <button class="btn-close" onclick="closePopup()">
+          Fermer
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentNumber = '';
+
+    window.electronAPI.onIncomingCall((callerNumber) => {
+      currentNumber = callerNumber;
+      document.getElementById('phone-number').textContent = callerNumber;
+    });
+
+    window.electronAPI.onNewCall((callerNumber) => {
+      currentNumber = callerNumber;
+      document.getElementById('phone-number').textContent = callerNumber;
+    });
+
+    function openInOdoo() {
+      if (currentNumber) {
+        window.electronAPI.openOdoo(currentNumber);
+      }
+    }
+
+    function closePopup() {
+      window.electronAPI.closePopup();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePopup();
+      } else if (e.key === 'Enter') {
+        openInOdoo();
+      }
+    });
+  </script>
+</body>
+</html>

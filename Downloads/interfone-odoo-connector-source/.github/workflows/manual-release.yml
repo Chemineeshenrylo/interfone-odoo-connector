@@ -1,0 +1,145 @@
+name: Manual Release
+
+# Ce workflow peut être déclenché manuellement depuis l'interface GitHub
+# Utile pour créer une release sans créer de tag d'abord
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.5.7)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+        default: 'Manual release'
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Update version in package.json
+        run: |
+          $packageJson = Get-Content package.json -Raw | ConvertFrom-Json
+          $packageJson.version = "${{ github.event.inputs.version }}"
+          $packageJson | ConvertTo-Json -Depth 100 | Set-Content package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows
+        run: npm run dist-win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/Interfone-Odoo-Connector-Setup-*.exe
+            dist/latest.yml
+          retention-days: 1
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Update version in package.json
+        run: |
+          node -e "const pkg=require('./package.json'); pkg.version='${{ github.event.inputs.version }}'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build macOS
+        run: npm run dist-mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            dist/Interfone-Odoo-Connector-*-arm64-mac.zip
+            dist/latest-mac.yml
+          retention-days: 1
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: dist-windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: dist-macos
+
+      - name: Create tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Version ${{ github.event.inputs.version }}
+          body: |
+            ## 🎉 Version ${{ github.event.inputs.version }}
+
+            ${{ github.event.inputs.release_notes }}
+
+            ### 📥 Téléchargements
+
+            - **Windows** : `Interfone-Odoo-Connector-Setup-${{ github.event.inputs.version }}.exe`
+            - **macOS** : `Interfone-Odoo-Connector-${{ github.event.inputs.version }}-arm64-mac.zip`
+
+            ---
+
+            🤖 Build automatique via GitHub Actions
+          files: |
+            dist-windows/Interfone-Odoo-Connector-Setup-*.exe
+            dist-windows/latest.yml
+            dist-macos/Interfone-Odoo-Connector-*-arm64-mac.zip
+            dist-macos/latest-mac.yml
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

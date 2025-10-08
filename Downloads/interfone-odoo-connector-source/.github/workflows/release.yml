@@ -1,0 +1,127 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Déclenché sur les tags comme v1.5.7, v1.6.0, etc.
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows
+        run: npm run dist-win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/Interfone-Odoo-Connector-Setup-*.exe
+            dist/latest.yml
+          retention-days: 1
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Note: Pour signer l'app macOS, il faut ajouter les certificats
+      # Voir: https://www.electron.build/code-signing
+
+      - name: Build macOS
+        run: npm run dist-mac
+        env:
+          # CSC_LINK: ${{ secrets.MAC_CERT_BASE64 }}
+          # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false  # Désactiver la signature pour l'instant
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            dist/Interfone-Odoo-Connector-*-arm64-mac.zip
+            dist/latest-mac.yml
+          retention-days: 1
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: dist-windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: dist-macos
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Version ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## 🎉 Version ${{ steps.get_version.outputs.VERSION }}
+
+            ### 📥 Téléchargements
+
+            - **Windows** : `Interfone-Odoo-Connector-Setup-${{ steps.get_version.outputs.VERSION }}.exe`
+            - **macOS** : `Interfone-Odoo-Connector-${{ steps.get_version.outputs.VERSION }}-arm64-mac.zip`
+
+            ### ✨ Changements
+
+            Voir le commit pour plus de détails.
+
+            ---
+
+            🤖 Build automatique via GitHub Actions
+          files: |
+            dist-windows/Interfone-Odoo-Connector-Setup-*.exe
+            dist-windows/latest.yml
+            dist-macos/Interfone-Odoo-Connector-*-arm64-mac.zip
+            dist-macos/latest-mac.yml
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
