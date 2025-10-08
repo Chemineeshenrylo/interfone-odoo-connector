@@ -648,7 +648,7 @@
           <div class="section-title">À propos</div>
           <div style="padding: 10px 0;">
             <p style="font-size: 12px; margin-bottom: 8px;"><strong>Interfone Odoo Connector</strong></p>
-            <p style="font-size: 11px; color: #777; margin-bottom: 4px;">Version: 1.4.9</p>
+            <p style="font-size: 11px; color: #777; margin-bottom: 4px;">Version: 1.5.0</p>
             <p style="font-size: 11px; color: #777; margin-bottom: 15px;">Application de bureau pour l'intégration entre Interfone (SIP) et Odoo CRM</p>
 
             <div class="section-title" style="margin-top: 20px;">Fonctionnalités</div>
@@ -664,12 +664,15 @@
         </div>
 
         <div class="section">
-          <div class="section-title">Mise à jour (v1.4.9)</div>
+          <div class="section-title">Mise à jour (v1.5.0)</div>
           <div class="form-group">
             <div class="help-text" id="updateStatusAbout">Vérification des mises à jour...</div>
             <div style="margin-top: 15px;">
               <button type="button" class="btn-primary" onclick="checkForUpdates()" id="checkUpdateBtnAbout">
                 Vérifier les mises à jour
+              </button>
+              <button type="button" class="btn-primary" onclick="testUpdateQuit()" style="margin-left: 10px; background: #ff6b6b;">
+                🧪 Test fermeture update
               </button>
             </div>
           </div>
@@ -909,6 +912,19 @@
         status.textContent = 'Erreur lors de la vérification: ' + error.message;
         btn.disabled = false;
         btn.textContent = 'Vérifier les mises à jour';
+      }
+    }
+
+    // Fonction de test pour simuler le processus de fermeture d'update
+    async function testUpdateQuit() {
+      const confirmTest = confirm('🧪 TEST: Ceci va simuler la fermeture de l\'app comme si une mise à jour était prête.\n\nL\'app va se fermer complètement (sans installer de mise à jour).\n\nContinuer ?');
+
+      if (!confirmTest) return;
+
+      try {
+        await window.electronAPI.invoke('test-update-quit');
+      } catch (error) {
+        console.error('Erreur lors du test:', error);
       }
     }
 

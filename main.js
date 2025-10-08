@@ -357,16 +357,44 @@ function setupAutoUpdater() {
       type: 'info',
       title: 'Mise à jour prête',
       message: `La mise à jour vers la version ${info.version} est prête à être installée.`,
-      detail: 'L\'application va redémarrer pour appliquer la mise à jour.',
+      detail: 'L\'application va se fermer. L\'installateur se lancera automatiquement.',
       buttons: ['Installer maintenant', 'Plus tard'],
       defaultId: 0
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.response === 0) {
-        // Forcer la fermeture et l'installation
-        setImmediate(() => {
-          app.isQuitting = true;
-          autoUpdater.quitAndInstall(false, true);
-        });
+        app.isQuitting = true;
+
+        // Nettoyage complet avant fermeture
+        if (tray && !tray.isDestroyed()) {
+          tray.destroy();
+          tray = null;
+        }
+
+        if (sipClient) {
+          await sipClient.disconnect();
+        }
+
+        if (popupWindow && !popupWindow.isDestroyed()) {
+          popupWindow.destroy();
+          popupWindow = null;
+        }
+
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.destroy();
+          mainWindow = null;
+        }
+
+        // Sur Windows: juste quitter, l'installateur téléchargé se lancera automatiquement
+        // Sur macOS: utiliser quitAndInstall
+        setTimeout(() => {
+          if (process.platform === 'win32') {
+            console.log('🪟 Windows: Fermeture de l\'app, l\'installateur NSIS va se lancer...');
+            app.quit();
+          } else {
+            console.log('🍎 macOS: Utilisation de quitAndInstall...');
+            autoUpdater.quitAndInstall(false, true);
+          }
+        }, 500);
       }
     });
   });
@@ -412,20 +440,55 @@ ipcMain.handle('install-update', async () => {
   // Marquer qu'on quitte
   app.isQuitting = true;
 
-  // Sur Windows avec oneClick, on force la fermeture immédiate
-  // L'installateur NSIS se charge de tout avec taskkill
-  if (process.platform === 'win32') {
-    console.log('💪 Fermeture forcée pour Windows oneClick...');
-    setTimeout(() => {
-      app.exit(0);
-    }, 500);
-  } else {
-    // macOS: utiliser quitAndInstall normalement
-    setTimeout(() => {
-      console.log('✅ Installation de la mise à jour...');
+  // Sur Windows: juste quitter proprement, l'installateur téléchargé se lancera automatiquement
+  // Sur macOS: utiliser quitAndInstall
+  setTimeout(() => {
+    if (process.platform === 'win32') {
+      console.log('🪟 Windows: Fermeture de l\'app, l\'installateur NSIS va se lancer...');
+      app.quit();
+    } else {
+      console.log('🍎 macOS: Utilisation de quitAndInstall...');
       autoUpdater.quitAndInstall(false, true);
-    }, 500);
+    }
+  }, 500);
+});
+
+// Handler de test pour simuler le processus de fermeture d'update
+ipcMain.handle('test-update-quit', async () => {
+  console.log('🧪 TEST: Simulation du processus de fermeture pour update');
+
+  // Détruire le Tray en premier (CRUCIAL pour Windows)
+  if (tray && !tray.isDestroyed()) {
+    console.log('🗑️ Destruction du Tray...');
+    tray.destroy();
+    tray = null;
   }
+
+  // Nettoyer proprement avant de quitter
+  if (sipClient) {
+    console.log('🔌 Déconnexion du client SIP...');
+    await sipClient.disconnect();
+  }
+
+  // Fermer toutes les fenêtres
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    popupWindow.destroy();
+    popupWindow = null;
+  }
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.destroy();
+    mainWindow = null;
+  }
+
+  // Marquer qu'on quitte
+  app.isQuitting = true;
+
+  // Juste quitter (comme on fait pour Windows update)
+  setTimeout(() => {
+    console.log('🪟 TEST: Fermeture de l\'app...');
+    app.quit();
+  }, 500);
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {
