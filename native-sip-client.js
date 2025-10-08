@@ -544,12 +544,26 @@ class NativeSIPClient extends EventEmitter {
       console.log('💓 Timer de keep-alive arrêté');
     }
 
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
+    // Nettoyer le timeout d'appel s'il existe
+    if (this.callTimeout) {
+      clearTimeout(this.callTimeout);
+      this.callTimeout = null;
+      console.log('⏰ Timeout d\'appel arrêté');
     }
 
+    // Fermer proprement le socket UDP
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.close();
+      this.socket = null;
+      console.log('🔌 Socket UDP fermé');
+    }
+
+    // Nettoyer les données
     this.registered = false;
+    this.currentCall = null;
+    this.processedCallIds.clear();
+
     this.emit('disconnected');
   }
 

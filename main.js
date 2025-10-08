@@ -216,6 +216,42 @@ app.on('window-all-closed', () => {
   }
 });
 
+// Nettoyer proprement avant de quitter (important pour Windows)
+app.on('before-quit', async (event) => {
+  if (!app.isQuitting) {
+    event.preventDefault();
+    app.isQuitting = true;
+
+    console.log('🧹 Nettoyage avant fermeture...');
+
+    // Déconnecter le client SIP proprement
+    if (sipClient) {
+      try {
+        console.log('🔌 Déconnexion du client SIP...');
+        await sipClient.disconnect();
+      } catch (error) {
+        console.error('Erreur lors de la déconnexion SIP:', error);
+      }
+    }
+
+    // Fermer toutes les fenêtres
+    if (popupWindow) {
+      popupWindow.destroy();
+      popupWindow = null;
+    }
+
+    if (mainWindow) {
+      mainWindow.destroy();
+      mainWindow = null;
+    }
+
+    console.log('✅ Nettoyage terminé');
+
+    // Quitter réellement
+    app.quit();
+  }
+});
+
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createMainWindow();
@@ -340,8 +376,33 @@ ipcMain.handle('check-for-updates', async () => {
 });
 
 ipcMain.handle('install-update', async () => {
+  console.log('🔄 Installation de la mise à jour...');
+
+  // Nettoyer proprement avant de quitter
+  if (sipClient) {
+    console.log('🔌 Déconnexion du client SIP...');
+    await sipClient.disconnect();
+  }
+
+  // Fermer toutes les fenêtres
+  if (popupWindow) {
+    popupWindow.destroy();
+    popupWindow = null;
+  }
+
+  if (mainWindow) {
+    mainWindow.destroy();
+    mainWindow = null;
+  }
+
+  // Marquer qu'on quitte
   app.isQuitting = true;
-  autoUpdater.quitAndInstall(false, true);
+
+  // Attendre un peu pour que tout se nettoie
+  setTimeout(() => {
+    console.log('✅ Installation de la mise à jour...');
+    autoUpdater.quitAndInstall(false, true);
+  }, 500);
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {
