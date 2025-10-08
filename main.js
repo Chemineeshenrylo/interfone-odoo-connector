@@ -224,6 +224,13 @@ app.on('before-quit', async (event) => {
 
     console.log('🧹 Nettoyage avant fermeture...');
 
+    // Détruire le Tray en premier (CRUCIAL pour Windows)
+    if (tray && !tray.isDestroyed()) {
+      console.log('🗑️ Destruction du Tray...');
+      tray.destroy();
+      tray = null;
+    }
+
     // Déconnecter le client SIP proprement
     if (sipClient) {
       try {
@@ -235,12 +242,12 @@ app.on('before-quit', async (event) => {
     }
 
     // Fermer toutes les fenêtres
-    if (popupWindow) {
+    if (popupWindow && !popupWindow.isDestroyed()) {
       popupWindow.destroy();
       popupWindow = null;
     }
 
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.destroy();
       mainWindow = null;
     }
@@ -378,6 +385,13 @@ ipcMain.handle('check-for-updates', async () => {
 ipcMain.handle('install-update', async () => {
   console.log('🔄 Installation de la mise à jour...');
 
+  // Détruire le Tray en premier (CRUCIAL pour Windows)
+  if (tray && !tray.isDestroyed()) {
+    console.log('🗑️ Destruction du Tray...');
+    tray.destroy();
+    tray = null;
+  }
+
   // Nettoyer proprement avant de quitter
   if (sipClient) {
     console.log('🔌 Déconnexion du client SIP...');
@@ -385,12 +399,12 @@ ipcMain.handle('install-update', async () => {
   }
 
   // Fermer toutes les fenêtres
-  if (popupWindow) {
+  if (popupWindow && !popupWindow.isDestroyed()) {
     popupWindow.destroy();
     popupWindow = null;
   }
 
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.destroy();
     mainWindow = null;
   }
