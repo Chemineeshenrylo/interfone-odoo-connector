@@ -412,11 +412,20 @@ ipcMain.handle('install-update', async () => {
   // Marquer qu'on quitte
   app.isQuitting = true;
 
-  // Attendre un peu pour que tout se nettoie
-  setTimeout(() => {
-    console.log('✅ Installation de la mise à jour...');
-    autoUpdater.quitAndInstall(false, true);
-  }, 500);
+  // Sur Windows avec oneClick, on force la fermeture immédiate
+  // L'installateur NSIS se charge de tout avec taskkill
+  if (process.platform === 'win32') {
+    console.log('💪 Fermeture forcée pour Windows oneClick...');
+    setTimeout(() => {
+      app.exit(0);
+    }, 500);
+  } else {
+    // macOS: utiliser quitAndInstall normalement
+    setTimeout(() => {
+      console.log('✅ Installation de la mise à jour...');
+      autoUpdater.quitAndInstall(false, true);
+    }, 500);
+  }
 });
 
 ipcMain.handle('save-settings', async (event, settings) => {
